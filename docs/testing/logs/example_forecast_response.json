@@ -1,0 +1,21 @@
+{
+  "model": "ensemble",
+  "predictions": [
+    {
+      "month": 1,
+      "period": "2026-05",
+      "profitability": 12.4,
+      "profitability_arima": 11.8,
+      "profitability_catboost": 12.9
+    },
+    {
+      "month": 2,
+      "period": "2026-06",
+      "profitability": 11.9,
+      "profitability_arima": 11.2,
+      "profitability_catboost": 12.5
+    }
+  ],
+  "metrics": {},
+  "note": null
+}
