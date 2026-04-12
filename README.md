@@ -400,4 +400,3 @@ cd backend
 | [docs/Otchet_pervichnoe_testirovanie_i_sravnenie_s_planom_NIR.md](docs/Otchet_pervichnoe_testirovanie_i_sravnenie_s_planom_NIR.md) | Отчёт: первичное тестирование, метрики, соответствие плану НИР |
 | [docs/testing/](docs/testing/README.md) | Метрики, скриншоты, примеры логов API |
 
-
