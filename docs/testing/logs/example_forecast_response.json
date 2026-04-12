@@ -14,6 +14,13 @@
       "profitability": 11.9,
       "profitability_arima": 11.2,
       "profitability_catboost": 12.5
+    },
+    {
+      "month": 3,
+      "period": "2026-07",
+      "profitability": 12.1,
+      "profitability_arima": 11.5,
+      "profitability_catboost": 12.7
     }
   ],
   "metrics": {},

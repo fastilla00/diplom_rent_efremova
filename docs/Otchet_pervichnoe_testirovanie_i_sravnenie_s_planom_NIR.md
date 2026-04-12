@@ -75,7 +75,7 @@ cd backend
 |---------------|---------------------------|
 | Метрики и таблицы | `docs/testing/metrics.md` |
 | Скриншоты UI | `docs/testing/screenshots/` — файлы по чек-листу в `docs/testing/README.md` (вход, синхронизация, дашборд, аналитика, прогноз, алерты, при необходимости Swagger) |
-| Пример ответа API прогноза | `docs/testing/logs/example_forecast_response.json` — **обезличенный** образец JSON (без токенов) |
+| Примеры логов и JSON | `docs/testing/logs/`: `example_pytest_run.txt`, `example_forecast_response.json` (ensemble), `example_forecast_response_naive.json` — **обезличенные** образцы для отчёта |
 
 Скриншоты пользователь формирует при работе с развёрнутым приложением; при включённом размытии персональных данных (`frontend/src/config/privacy.js`) иллюстрации пригодны для публичной сдачи.
 

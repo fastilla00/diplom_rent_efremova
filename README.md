@@ -376,10 +376,11 @@ cd backend
 | Артефакт | Файл / папка |
 |----------|----------------|
 | Метрики ML и чек-лист UI | [docs/testing/metrics.md](docs/testing/metrics.md) |
-| Пример ответа API прогноза | [docs/testing/logs/example_forecast_response.json](docs/testing/logs/example_forecast_response.json) |
+| Лог pytest (обезличенный) | [docs/testing/logs/example_pytest_run.txt](docs/testing/logs/example_pytest_run.txt) |
+| Примеры JSON прогноза (ensemble / naive) | [example_forecast_response.json](docs/testing/logs/example_forecast_response.json), [example_forecast_response_naive.json](docs/testing/logs/example_forecast_response_naive.json) |
 | Скриншоты интерфейса | `docs/testing/screenshots/` (PNG по чек-листу в README каталога) |
 
-Перед сдачей заполните таблицы в `metrics.md`, добавьте скриншоты и при необходимости экспорт логов (без секретов).
+Перед сдачей заполните таблицы в `metrics.md`, добавьте скриншоты. Готовые примеры логов и JSON — в `docs/testing/logs/`; при необходимости дополните своими обезличенными файлами.
 
 ---
 

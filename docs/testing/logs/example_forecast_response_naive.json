@@ -1,0 +1,17 @@
+{
+  "model": "naive",
+  "predictions": [
+    {
+      "month": 1,
+      "period": "2026-05",
+      "profitability": 18.5
+    },
+    {
+      "month": 2,
+      "period": "2026-06",
+      "profitability": 18.5
+    }
+  ],
+  "metrics": {},
+  "note": "Мало данных (3 мес.). Прогноз упрощён."
+}
