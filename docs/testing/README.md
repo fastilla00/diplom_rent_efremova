@@ -10,7 +10,7 @@
 | [logs/example_pytest_run.txt](logs/example_pytest_run.txt) | Обезличенный вывод `pytest -v` для отчёта |
 | [logs/example_forecast_response.json](logs/example_forecast_response.json) | Пример JSON: режим **ensemble** (ARIMA + CatBoost) |
 | [logs/example_forecast_response_naive.json](logs/example_forecast_response_naive.json) | Пример JSON: режим **naive** при малой истории |
-| `screenshots/` | Скриншоты UI — положите PNG в эту папку (см. список ниже) |
+| `screenshots/*.png` | Скриншоты UI (набор ниже) |
 
 ## Логи и примеры ответов API
 
@@ -18,17 +18,37 @@
 
 Если сохраняете **свои** фрагменты ответов API с работающего стенда, по-прежнему вырезайте заголовок `Authorization`, токены и ФИО/контакты из тела; для прогноза достаточно структуры как в примерах JSON.
 
-## Скриншоты (рекомендуемый набор)
+## Скриншоты интерфейса (функциональное тестирование)
 
-Добавьте файлы в `screenshots/` и при необходимости перечислите их в отчёте:
+Файлы в каталоге `screenshots/`. Ниже — вставки для просмотра в GitHub / VS Code и для включения в отчёт.
 
-1. `01_login.png` — экран входа через Google  
-2. `02_sync.png` — раздел «Синхронизация» после успешной загрузки  
-3. `03_dashboard.png` — дашборд с ненулевыми показателями  
-4. `04_analytics.png` — аналитика (график + списки)  
-5. `05_forecast.png` — прогноз (график + таблица, при ансамбле — колонки ARIMA/CatBoost)  
-6. `06_alerts.png` — алерты (при наличии)  
-7. `07_swagger.png` — фрагмент `/docs`  
+### 1. Вход через Google
+
+![Экран входа](screenshots/01_login.png)
+
+### 2. Синхронизация
+
+![Раздел «Синхронизация» после загрузки](screenshots/02_sync.png)
+
+### 3. Дашборд
+
+![Дашборд](screenshots/03_dashboard.png)
+
+### 4. Аналитика
+
+![Аналитика](screenshots/04_analytics.png)
+
+### 5. Прогноз
+
+![Прогноз рентабельности](screenshots/05_forecast.png)
+
+### 6. Алерты
+
+![Алерты](screenshots/06_alerts.png)
+
+### 7. Документация API (Swagger)
+
+![Фрагмент /docs](screenshots/07_swagger.png)
 
 
 ## Как обновить метрики

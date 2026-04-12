@@ -378,9 +378,9 @@ cd backend
 | Метрики ML и чек-лист UI | [docs/testing/metrics.md](docs/testing/metrics.md) |
 | Лог pytest (обезличенный) | [docs/testing/logs/example_pytest_run.txt](docs/testing/logs/example_pytest_run.txt) |
 | Примеры JSON прогноза (ensemble / naive) | [example_forecast_response.json](docs/testing/logs/example_forecast_response.json), [example_forecast_response_naive.json](docs/testing/logs/example_forecast_response_naive.json) |
-| Скриншоты интерфейса | `docs/testing/screenshots/` (PNG по чек-листу в README каталога) |
+| Скриншоты UI | [docs/testing/README.md](docs/testing/README.md) — раздел «Скриншоты интерфейса», файлы `01_login.png` … `07_swagger.png` |
 
-Перед сдачей заполните таблицы в `metrics.md`, добавьте скриншоты. Готовые примеры логов и JSON — в `docs/testing/logs/`; при необходимости дополните своими обезличенными файлами.
+Перед сдачей заполните таблицы в `metrics.md`. Скриншоты и логи: см. **[docs/testing/README.md](docs/testing/README.md)**; итоговый отчёт — **[docs/Otchet_...md](docs/Otchet_pervichnoe_testirovanie_i_sravnenie_s_planom_NIR.md)** (приложение Б).
 
 ---
 
