@@ -14,6 +14,16 @@ async def compute_alerts(
     project_id: int,
     profitability_threshold_pct: float | None = None,
 ) -> list[Alert]:
+    """Создаёт новые записи алертов: низкая рентабельность (по полю и по формуле), просроченные оплаты.
+
+    Args:
+        session: Сессия БД (алерты добавляются в сессию и flush).
+        project_id: Проект.
+        profitability_threshold_pct: Порог рентабельности, иначе из настроек.
+
+    Returns:
+        Список созданных объектов `Alert`.
+    """
     threshold = profitability_threshold_pct or get_settings().default_profitability_threshold_pct
     today = date.today()
     new_alerts = []
@@ -100,6 +110,7 @@ async def list_alerts(
     unread_only: bool = False,
     limit: int = 100,
 ) -> list[Alert]:
+    """Возвращает последние алерты проекта, опционально только непрочитанные."""
     q = select(Alert).where(Alert.project_id == project_id).order_by(Alert.created_at.desc()).limit(limit)
     if unread_only:
         q = q.where(Alert.read_at.is_(None))

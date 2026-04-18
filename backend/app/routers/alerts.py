@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.models.project import Project
 from app.models.user import User
-from app.models.alert import Alert
 from app.schemas.alert import AlertOut
 from app.services.alerts_service import compute_alerts, list_alerts
 from app.routers.auth import require_user
@@ -20,7 +19,8 @@ async def get_alerts(
     user: User = Depends(require_user),
     unread_only: bool = Query(False),
     limit: int = Query(100, le=200),
-):
+) -> list[AlertOut]:
+    """Список алертов проекта с пагинацией по `limit`."""
     res = await db.execute(select(Project).where(Project.id == project_id, Project.user_id == user.id))
     if not res.scalar_one_or_none():
         raise HTTPException(404, "Project not found")
@@ -34,7 +34,8 @@ async def run_compute_alerts(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_user),
     threshold_pct: float | None = Query(None),
-):
+) -> dict[str, int]:
+    """Пересчитывает алерты по данным проекта и сохраняет новые записи в БД."""
     res = await db.execute(select(Project).where(Project.id == project_id, Project.user_id == user.id))
     if not res.scalar_one_or_none():
         raise HTTPException(404, "Project not found")

@@ -15,7 +15,8 @@ from app.services.static_project import ensure_static_project_for_user
 router = APIRouter(prefix="/projects", tags=["projects"])
 
 
-def _forbid_if_static():
+def _forbid_if_static() -> None:
+    """Запрещает изменение проектов, если включён режим одной таблицы из `.env`."""
     if get_settings().static_project_enabled:
         raise HTTPException(
             403,
@@ -24,6 +25,7 @@ def _forbid_if_static():
 
 
 def _integration_to_out(i: ProjectIntegration) -> ProjectIntegrationOut:
+    """Преобразует ORM-интеграцию в схему ответа API."""
     return ProjectIntegrationOut(
         spreadsheet_id=i.spreadsheet_id,
         sheet_acts=i.sheet_acts,
@@ -38,7 +40,8 @@ def _integration_to_out(i: ProjectIntegration) -> ProjectIntegrationOut:
 async def list_projects(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_user),
-):
+) -> list[ProjectOut]:
+    """Список проектов текущего пользователя (в статическом режиме — автосоздание проекта)."""
     if get_settings().static_project_enabled:
         await ensure_static_project_for_user(db, user)
     res = await db.execute(
@@ -59,7 +62,8 @@ async def create_project(
     body: ProjectCreate,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_user),
-):
+) -> ProjectOut:
+    """Создаёт проект и опционально привязку к Google Таблице (403 в статическом режиме)."""
     _forbid_if_static()
     project = Project(name=body.name, user_id=user.id)
     db.add(project)
@@ -87,10 +91,11 @@ async def create_project(
 
 @router.get("/{project_id}", response_model=ProjectOut)
 async def get_project(
-  project_id: int,
-  db: AsyncSession = Depends(get_db),
-  user: User = Depends(require_user),
-):
+    project_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_user),
+) -> ProjectOut:
+    """Возвращает один проект пользователя по id."""
     res = await db.execute(
         select(Project).where(Project.id == project_id, Project.user_id == user.id).options(selectinload(Project.integration))
     )
@@ -105,11 +110,12 @@ async def get_project(
 
 @router.patch("/{project_id}", response_model=ProjectOut)
 async def update_project(
-  project_id: int,
-  body: ProjectUpdate,
-  db: AsyncSession = Depends(get_db),
-  user: User = Depends(require_user),
-):
+    project_id: int,
+    body: ProjectUpdate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_user),
+) -> ProjectOut:
+    """Обновляет имя проекта и/или параметры интеграции с таблицей."""
     _forbid_if_static()
     res = await db.execute(select(Project).where(Project.id == project_id, Project.user_id == user.id))
     project = res.scalar_one_or_none()
@@ -153,7 +159,8 @@ async def delete_project(
     project_id: int,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_user),
-):
+) -> None:
+    """Удаляет проект пользователя (403 в статическом режиме)."""
     _forbid_if_static()
     res = await db.execute(select(Project).where(Project.id == project_id, Project.user_id == user.id))
     project = res.scalar_one_or_none()

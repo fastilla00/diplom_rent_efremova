@@ -1,5 +1,6 @@
 # EcomProfit Guard — ML forecasting: ARIMA, CatBoost, ensemble
 from __future__ import annotations
+from collections.abc import Sequence
 from datetime import date
 from decimal import Decimal
 from typing import Any
@@ -16,8 +17,11 @@ WINSORIZE_LOW, WINSORIZE_HIGH = 0.05, 0.95  # перцентили для обр
 MAX_TRAIN_MONTHS = 36  # обучаем на последних N месяцах (свежие данные после TL)
 MIN_HISTORY_FOR_FULL = 12
 
+# --- Подготовка ряда метрик (помесячная рентабельность) ---
 
-def _metric_df(rows: list) -> pd.DataFrame:
+
+def _metric_df(rows: Sequence[Metric]) -> pd.DataFrame:
+    """Преобразует строки `Metric` в отсортированный DataFrame с полем `profitability` и винзоризацией."""
     if not rows:
         return pd.DataFrame()
     data = []
@@ -46,6 +50,7 @@ def _metric_df(rows: list) -> pd.DataFrame:
 
 
 def build_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Строит лаги, скользящие средние, тренды и календарные признаки для ML-прогноза."""
     if df.empty or len(df) < 3:
         return pd.DataFrame()
     target = "profitability"
@@ -80,7 +85,11 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+# --- Модели прогноза (ARIMA, CatBoost, ансамбль) ---
+
+
 def forecast_arima(series: pd.Series, horizon: int) -> list[float]:
+    """Прогноз ряда рентабельности моделью ARIMA с подбором порядка по AIC; при сбое возвращает []."""
     if len(series) < 4 or horizon < 1:
         return []
     try:
@@ -121,6 +130,7 @@ def forecast_arima(series: pd.Series, horizon: int) -> list[float]:
 
 
 def _advance_month(ts: pd.Timestamp, delta: int) -> pd.Timestamp:
+    """Сдвигает метку первого числа месяца на `delta` месяцев вперёд/назад."""
     m = ts.month + delta
     y = ts.year
     while m > 12:
@@ -133,6 +143,7 @@ def _advance_month(ts: pd.Timestamp, delta: int) -> pd.Timestamp:
 
 
 def forecast_catboost(df: pd.DataFrame, horizon: int, last_period: pd.Timestamp) -> list[float]:
+    """Помесячный прогноз CatBoostRegressor с рекурсивным обновлением признаков на горизонте."""
     exclude = {"period", "year", "month", "profitability", "revenue", "costs"}
     feat_cols = [c for c in df.columns if c not in exclude and df[c].dtype in (np.float64, np.int64)]
     if not feat_cols or len(df) < MIN_HISTORY_FOR_FULL:
@@ -196,6 +207,7 @@ def forecast_catboost(df: pd.DataFrame, horizon: int, last_period: pd.Timestamp)
 
 
 def forecast_ensemble(df: pd.DataFrame, horizon: int, last_period: pd.Timestamp) -> tuple[list[float], list[float], list[float]]:
+    """Комбинирует прогнозы ARIMA и CatBoost с нормировкой весов; дополняет ряды до общей длины."""
     series = df.set_index("period")["profitability"]
     arima = forecast_arima(series, horizon)
     cat = forecast_catboost(df, horizon, last_period)
@@ -216,7 +228,7 @@ def forecast_ensemble(df: pd.DataFrame, horizon: int, last_period: pd.Timestamp)
     return arima, cat, ensemble
 
 
-def _naive_forecast(rows: list, horizon: int, last_period: pd.Timestamp) -> list[dict]:
+def _naive_forecast(rows: list[dict[str, Any]], horizon: int, last_period: pd.Timestamp) -> list[dict[str, Any]]:
     """Простой прогноз: повтор последнего значения или среднего."""
     if not rows:
         avg = 0.0
@@ -230,8 +242,10 @@ def _naive_forecast(rows: list, horizon: int, last_period: pd.Timestamp) -> list
     ]
 
 
-def _apply_forecast_periods(predictions: list[dict], first_show_ts: pd.Timestamp, horizon: int) -> None:
-    """Подменяет периоды в predictions на первые horizon месяцев начиная с first_show_ts."""
+def _apply_forecast_periods(
+    predictions: list[dict[str, Any]], first_show_ts: pd.Timestamp, horizon: int
+) -> None:
+    """Подменяет поля `period` в списке точек прогноза на месяцы, начиная с `first_show_ts`."""
     for i in range(min(horizon, len(predictions))):
         predictions[i]["period"] = _period_to_str(_advance_month(first_show_ts, i))
 
@@ -242,6 +256,17 @@ async def run_forecast(
     horizon_months: int,
     model_type: str = "ensemble",
 ) -> dict[str, Any]:
+    """Загружает помесячные `Metric`, строит признаки и возвращает прогноз рентабельности.
+
+    Args:
+        session: Async-сессия SQLAlchemy.
+        project_id: Проект.
+        horizon_months: Горизонт (не больше 12).
+        model_type: `arima`, `catboost` или `ensemble`.
+
+    Returns:
+        Словарь с ключами `model`, `predictions`, `metrics`, опционально `note`.
+    """
     settings = get_settings()
     res = await session.execute(
         select(Metric).where(Metric.project_id == project_id).order_by(Metric.year, Metric.month)
@@ -339,6 +364,7 @@ async def run_forecast(
 
 
 def _next_period(last: pd.Timestamp, offset: int) -> str:
+    """Строка периода `YYYY-MM` для `last` + `offset` месяцев."""
     m = last.month + offset
     y = last.year
     while m > 12:
@@ -360,6 +386,7 @@ def _first_forecast_period_from_today() -> pd.Timestamp:
 
 
 def _period_to_str(ts: pd.Timestamp) -> str:
+    """Форматирует метку месяца в строку `YYYY-MM`."""
     return f"{ts.year}-{ts.month:02d}"
 
 
@@ -372,7 +399,7 @@ def _seasonal_adjustment_by_month(df: pd.DataFrame) -> dict[int, float]:
     return {int(m): float(by_month[m] - global_mean) for m in by_month.index}
 
 
-def _apply_seasonal_variation(predictions: list[dict], df: pd.DataFrame) -> None:
+def _apply_seasonal_variation(predictions: list[dict[str, Any]], df: pd.DataFrame) -> None:
     """Добавляет сезонную вариацию по месяцам из истории (чтобы не было одной и той же цифры)."""
     adj = _seasonal_adjustment_by_month(df)
     if not adj:

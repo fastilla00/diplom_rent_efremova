@@ -32,7 +32,16 @@ async def get_dashboard(
     project_id: int,
     period_start: date,
     period_end: date,
-) -> dict:
+) -> dict[str, object]:
+    """Агрегирует выручку, затраты, прибыль и топы по проекту за период.
+
+    Выручка: сначала сумма по `Metric` за месяцы периода (эталон TL), иначе по актам
+    с датой `coalesce(shipment_date, act_date)`. Если по датам пусто — показ по всему проекту.
+
+    Returns:
+        Словарь с ключами `summary`, `top_projects`, `top_specialists`, `by_department`,
+        `period_start`, `period_end` (даты в ISO).
+    """
     # Выручка: приоритет — эталон из Metric (TL/Специалисты строки 66, 139, 160), иначе сумма по актам по дате отгрузки
     months = _months_in_period(period_start, period_end)
     revenue_from_metric = Decimal("0")

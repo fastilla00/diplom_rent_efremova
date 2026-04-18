@@ -14,14 +14,16 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.get("/google")
-def google_login():
+def google_login() -> dict[str, str]:
+    """Возвращает URL входа через Google OAuth и одноразовый `state` для защиты от CSRF."""
     state = secrets.token_urlsafe(16)
     url = auth_url(state)
     return {"url": url, "state": state}
 
 
 @router.post("/callback")
-async def auth_callback(body: AuthCallbackBody, db: AsyncSession = Depends(get_db)):
+async def auth_callback(body: AuthCallbackBody, db: AsyncSession = Depends(get_db)) -> TokenResponse:
+    """Обменивает код OAuth на токены Google, создаёт/обновляет пользователя и выдаёт JWT приложения."""
     code = (body.code or "").strip()
     state = (body.state or "").strip()
     if not code:
@@ -67,6 +69,7 @@ async def auth_callback(body: AuthCallbackBody, db: AsyncSession = Depends(get_d
 
 
 async def get_current_user_id(request: Request) -> int | None:
+    """Извлекает id пользователя из заголовка `Authorization: Bearer <JWT>`."""
     auth = request.headers.get("Authorization")
     if auth and auth.startswith("Bearer "):
         return decode_token(auth[7:].strip())
@@ -74,6 +77,7 @@ async def get_current_user_id(request: Request) -> int | None:
 
 
 async def require_user(request: Request, db: AsyncSession = Depends(get_db)) -> User:
+    """Зависимость: текущий пользователь по JWT или HTTP 401."""
     uid = await get_current_user_id(request)
     if not uid:
         raise HTTPException(401, "Not authenticated")
@@ -85,5 +89,6 @@ async def require_user(request: Request, db: AsyncSession = Depends(get_db)) -> 
 
 
 @router.get("/me", response_model=UserInfo)
-async def current_user(user: User = Depends(require_user)):
+async def current_user(user: User = Depends(require_user)) -> UserInfo:
+    """Профиль текущего пользователя по JWT."""
     return UserInfo(id=user.id, email=user.email, name=user.name, picture=user.picture)

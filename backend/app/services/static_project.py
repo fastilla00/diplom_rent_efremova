@@ -9,6 +9,11 @@ from app.models.user import User
 
 
 async def ensure_static_project_for_user(db: AsyncSession, user: User) -> Project | None:
+    """При `static_project_enabled` создаёт или обновляет единственный проект пользователя из настроек `.env`.
+
+    Returns:
+        Актуальный `Project` или None, если режим статического проекта выключен или не задан `spreadsheet_id`.
+    """
     s = get_settings()
     if not s.static_project_enabled:
         return None

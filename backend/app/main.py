@@ -1,4 +1,5 @@
 # EcomProfit Guard — FastAPI application
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,7 +9,8 @@ from app.config import get_settings
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Инициализация БД при старте приложения; при остановке можно добавить закрытие ресурсов."""
     await init_db()
     yield
     # shutdown if needed
@@ -38,5 +40,6 @@ app.include_router(forecast.router, prefix="/api")
 
 
 @app.get("/")
-def root():
+def root() -> dict[str, str]:
+    """Корневой health-подобный ответ и ссылка на OpenAPI."""
     return {"app": "EcomProfit Guard", "docs": "/docs"}

@@ -21,7 +21,8 @@ async def analytics(
     period_start: date | None = Query(None),
     period_end: date | None = Query(None),
     group_by: str = Query("month", regex="^(month|quarter|year)$"),
-):
+) -> AnalyticsOut:
+    """Аналитические разрезы и динамика по проекту с группировкой по месяцу/кварталу/году."""
     res = await db.execute(select(Project).where(Project.id == project_id, Project.user_id == user.id))
     if not res.scalar_one_or_none():
         raise HTTPException(404, "Project not found")

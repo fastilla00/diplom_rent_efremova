@@ -4,6 +4,8 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
+    """Настройки приложения из переменных окружения и файла `.env` (см. `.env.example`)."""
+
     app_name: str = "EcomProfit Guard"
     debug: bool = False
     database_url: str = "sqlite+aiosqlite:///./ecomprofit.db"
@@ -32,4 +34,5 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
+    """Возвращает singleton настроек (кэш `lru_cache`)."""
     return Settings()

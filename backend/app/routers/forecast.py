@@ -18,7 +18,8 @@ async def create_forecast(
     body: ForecastRequest,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_user),
-):
+) -> ForecastResponse:
+    """Прогноз рентабельности по выбранной модели и горизонту (см. `ForecastRequest`)."""
     res = await db.execute(select(Project).where(Project.id == project_id, Project.user_id == user.id))
     if not res.scalar_one_or_none():
         raise HTTPException(404, "Project not found")

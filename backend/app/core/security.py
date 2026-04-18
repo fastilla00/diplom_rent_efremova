@@ -7,6 +7,7 @@ ALGORITHM = "HS256"
 
 
 def create_token(user_id: int) -> str:
+    """Формирует JWT с полем `sub` (id пользователя) и сроком жизни 7 дней."""
     settings = get_settings()
     return jwt.encode(
         {"sub": str(user_id), "exp": datetime.utcnow() + timedelta(days=7)},
@@ -16,6 +17,7 @@ def create_token(user_id: int) -> str:
 
 
 def decode_token(token: str) -> int | None:
+    """Декодирует JWT и возвращает `user_id` из `sub` или None при ошибке/истечении."""
     try:
         settings = get_settings()
         payload = jwt.decode(token, settings.secret_key, algorithms=[ALGORITHM])

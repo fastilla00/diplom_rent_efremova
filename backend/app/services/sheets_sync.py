@@ -140,6 +140,7 @@ COST_COLUMNS = {
 
 
 def _norm_key(s: str) -> str:
+    """Нормализует заголовок колонки Google Sheets для сопоставления с `ACT_COLUMNS` / `COST_COLUMNS`."""
     if s is None:
         return ""
     s = str(s).strip().replace("\xa0", " ").replace("\u00a0", " ")
@@ -151,8 +152,8 @@ def _norm_key(s: str) -> str:
     return s
 
 
-def _row_by_indices(row: list, index_map: dict) -> dict[str, Any]:
-    """Собирает словарь по номерам столбцов (ваша раскладка)."""
+def _row_by_indices(row: list[Any], index_map: dict[str, int]) -> dict[str, Any]:
+    """Собирает словарь полей строки по фиксированным индексам столбцов (раскладка листа)."""
     out = {}
     for field, idx in index_map.items():
         if idx < len(row):
@@ -163,7 +164,8 @@ def _row_by_indices(row: list, index_map: dict) -> dict[str, Any]:
     return out
 
 
-def _row_to_dict(row: list[str], headers: list[str], column_map: dict) -> dict[str, Any]:
+def _row_to_dict(row: list[str], headers: list[str], column_map: dict[str, str]) -> dict[str, Any]:
+    """Сопоставляет ячейки строки заголовкам и внешнему маппингу имя_колонки → внутреннее поле."""
     out = {}
     for i, h in enumerate(headers):
         key = _norm_key(h)
@@ -177,6 +179,7 @@ def _row_to_dict(row: list[str], headers: list[str], column_map: dict) -> dict[s
 
 
 def _parse_date(v: Any) -> date | None:
+    """Парсит дату из ячейки Sheets: `date`, serial number, строки `YYYY-MM-DD` / `DD.MM.YYYY`."""
     if v is None or v == "":
         return None
     if isinstance(v, date):
@@ -203,6 +206,7 @@ def _parse_date(v: Any) -> date | None:
 
 
 def _parse_decimal(v: Any) -> Decimal | None:
+    """Парсит денежное значение с поддержкой запятой как десятичного разделителя и пробелов."""
     if v is None or v == "":
         return None
     try:
@@ -216,6 +220,7 @@ def _parse_decimal(v: Any) -> Decimal | None:
 
 
 def _parse_float(v: Any) -> float | None:
+    """Парсит вещественное число из строки или числа."""
     if v is None or v == "":
         return None
     try:
@@ -226,6 +231,7 @@ def _parse_float(v: Any) -> float | None:
 
 
 def _parse_int(v: Any) -> int | None:
+    """Парсит целое из строки или float-представления."""
     if v is None or v == "":
         return None
     try:
@@ -234,7 +240,8 @@ def _parse_int(v: Any) -> int | None:
         return None
 
 
-def _build_act(d: dict, project_id: int) -> Act:
+def _build_act(d: dict[str, Any], project_id: int) -> Act:
+    """Создаёт ORM-модель `Act` из нормализованного словаря строки листа «Акты»."""
     return Act(
         project_id=project_id,
         external_id=d.get("external_id") or None,
@@ -279,7 +286,8 @@ def _build_act(d: dict, project_id: int) -> Act:
     )
 
 
-def _build_cost(d: dict, project_id: int) -> Cost:
+def _build_cost(d: dict[str, Any], project_id: int) -> Cost:
+    """Создаёт ORM-модель `Cost` из словаря строки листа «Затраты»."""
     return Cost(
         project_id=project_id,
         counterparty=d.get("counterparty") or "",
@@ -313,7 +321,7 @@ TL_MONTH_START, TL_MONTH_END = 2, 14  # C=2, N=13 → slice [2:14]
 async def _write_tl_revenue_to_metrics(
     session: AsyncSession,
     project_id: int,
-    rows: list,
+    rows: list[list[Any]],
 ) -> None:
     """Пишет эталонную выручку из уже загруженных строк листа TL (строки 66, 139, 160, столбцы C–N) в Metric."""
     if not rows:
@@ -357,6 +365,7 @@ async def _write_tl_revenue_to_metrics(
 
 
 def _month_index(label: str) -> int | None:
+    """Определяет номер месяца 1–12 по подписи (рус./англ.) или числу."""
     s = (label or "").strip().lower()[:4]
     for i, name in enumerate(MONTH_NAMES_RU, 1):
         if name.startswith(s) or s in name:
@@ -368,11 +377,29 @@ def _month_index(label: str) -> int | None:
     return _parse_int(label)
 
 
+# =============================================================================
+# Синхронизация: загрузка листов Google Sheets → локальная БД
+# =============================================================================
+
+
 async def sync_project_sheets(
     session: AsyncSession,
     project_id: int,
     creds: Credentials,
 ) -> datetime:
+    """Читает листы Акты, Затраты, TL/Специалисты и пересобирает связанные таблицы проекта.
+
+    Args:
+        session: Async-сессия SQLAlchemy.
+        project_id: Идентификатор проекта с настроенной `ProjectIntegration`.
+        creds: OAuth credentials пользователя Google.
+
+    Returns:
+        Время успешного завершения (`last_sync_at`).
+
+    Raises:
+        ValueError: Если у проекта нет интеграции с таблицей.
+    """
     result = await session.execute(
         select(ProjectIntegration).where(ProjectIntegration.project_id == project_id)
     )

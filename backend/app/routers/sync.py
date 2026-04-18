@@ -2,7 +2,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from google.oauth2.credentials import Credentials
 from app.database import get_db
 from app.models.project import Project, ProjectIntegration
 from app.models.user import User
@@ -15,10 +14,11 @@ router = APIRouter(prefix="/sync", tags=["sync"])
 
 @router.post("/{project_id}")
 async def run_sync(
-  project_id: int,
-  db: AsyncSession = Depends(get_db),
-  user: User = Depends(require_user),
-):
+    project_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_user),
+) -> dict[str, object]:
+    """Запускает импорт данных из Google Sheets в БД для проекта пользователя."""
     res = await db.execute(select(Project).where(Project.id == project_id, Project.user_id == user.id))
     project = res.scalar_one_or_none()
     if not project:

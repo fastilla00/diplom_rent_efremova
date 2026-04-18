@@ -2,6 +2,7 @@
 # Выручка по актам относим к периоду по дате отгрузки (деньги по отгрузке), иначе по дате акта.
 from datetime import date
 from decimal import Decimal
+from typing import Any
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.act import Act
@@ -16,7 +17,19 @@ async def get_analytics(
     period_start: date,
     period_end: date,
     group_by: str = "month",
-) -> dict:
+) -> dict[str, list[dict[str, Any]]]:
+    """Сводная аналитика по проекту: динамика по периоду и разрезы по измерениям.
+
+    Args:
+        session: Сессия БД.
+        project_id: Идентификатор проекта.
+        period_start: Начало периода (включительно).
+        period_end: Конец периода (включительно).
+        group_by: Группировка времени: `month`, `quarter` или `year`.
+
+    Returns:
+        Словарь с ключами `by_period`, `by_project`, `by_client`, `by_specialist`, `by_department`.
+    """
     by_period = await _by_period(session, project_id, period_start, period_end, group_by)
     by_project = await _by_group(session, project_id, period_start, period_end, Act.project_name)
     by_client = await _by_group(session, project_id, period_start, period_end, Act.client)
@@ -32,6 +45,7 @@ async def get_analytics(
 
 
 def _period_key(d: date, group_by: str) -> str:
+    """Строковый ключ периода для агрегации (`YYYY`, `YYYY-Qn` или `YYYY-MM`)."""
     if group_by == "year":
         return str(d.year)
     if group_by == "quarter":
@@ -46,7 +60,8 @@ async def _by_period(
     period_start: date,
     period_end: date,
     group_by: str,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
+    """Выручка и распределённые пропорционально затраты по календарным периодам."""
     rev_q = select(_revenue_date.label("revenue_date"), Act.revenue).where(
         Act.project_id == project_id,
         _revenue_date.isnot(None),
@@ -131,8 +146,9 @@ async def _by_group(
     project_id: int,
     period_start: date,
     period_end: date,
-    group_col,
-) -> list[dict]:
+    group_col: Any,
+) -> list[dict[str, Any]]:
+    """Агрегация выручки и оценка затрат по столбцу группировки (проект, клиент и т.д.)."""
     rev_q = (
         select(group_col.label("name"), func.sum(Act.revenue).label("revenue"), func.count(Act.id).label("cnt"))
         .where(

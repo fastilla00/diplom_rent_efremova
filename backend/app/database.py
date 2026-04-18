@@ -16,6 +16,7 @@ class Base(DeclarativeBase):
 
 
 async def get_db():
+    """Зависимость FastAPI: выдаёт async-сессию SQLAlchemy, коммит при успехе, откат при ошибке."""
     async with AsyncSessionLocal() as session:
         try:
             yield session
@@ -74,7 +75,8 @@ async def _migrate_acts_columns(conn):
             pass
 
 
-async def init_db():
+async def init_db() -> None:
+    """Создаёт таблицы по моделям и применяет лёгкие миграции SQLite для новых колонок."""
     from app import models  # noqa: F401 — register models
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

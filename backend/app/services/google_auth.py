@@ -24,6 +24,7 @@ _flow_cache: dict[str, Flow] = {}
 
 
 def _oauth_cache_path(state: str) -> str:
+    """Путь к JSON-кэшу PKCE (`code_verifier`) для переданного `state`."""
     import hashlib
     safe = hashlib.sha256(state.encode()).hexdigest()[:32]
     d = os.path.join(tempfile.gettempdir(), "ecomprofit_oauth")
@@ -32,10 +33,19 @@ def _oauth_cache_path(state: str) -> str:
 
 
 def _get_code_verifier(flow: Flow) -> str | None:
+    """Возвращает PKCE `code_verifier`, если библиотека его сохранила на объекте `Flow`."""
     return getattr(flow, "code_verifier", None)
 
 
 def auth_url(state: str) -> str:
+    """Строит URL авторизации Google OAuth и сохраняет `Flow`/PKCE для последующего `fetch_token`.
+
+    Args:
+        state: Непредсказуемая строка (CSRF), та же должна вернуться на callback.
+
+    Returns:
+        URL для перенаправления пользователя в Google.
+    """
     settings = get_settings()
     flow = Flow.from_client_config(
         {
@@ -71,6 +81,11 @@ def auth_url(state: str) -> str:
 def credentials_from_code(
     code: str, state: str | None = None
 ) -> tuple[Credentials, str | None, str | None, str | None]:
+    """Обменивает код авторизации на токены и профиль пользователя Google.
+
+    Returns:
+        Кортеж: (`Credentials`, email, имя, google id).
+    """
     if not state:
         raise ValueError("Invalid or expired state; try logging in again")
     flow = _flow_cache.pop(state, None)
@@ -115,6 +130,7 @@ def credentials_from_code(
 
 
 def get_user_info(creds: Credentials) -> tuple[str | None, str | None, str | None]:
+    """Запрашивает userinfo по access token (OAuth2 v2)."""
     import httpx
     try:
         resp = httpx.get(
@@ -131,6 +147,7 @@ def get_user_info(creds: Credentials) -> tuple[str | None, str | None, str | Non
 
 
 def credentials_for_user(access_token: str, refresh_token: str | None, expires_at: datetime | None) -> Credentials:
+    """Собирает `google.oauth2.credentials.Credentials` из токенов, сохранённых у пользователя в БД."""
     settings = get_settings()
     return Credentials(
         token=access_token,

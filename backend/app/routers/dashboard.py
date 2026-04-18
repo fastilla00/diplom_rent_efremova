@@ -19,7 +19,8 @@ async def dashboard(
     user: User = Depends(require_user),
     period_start: date | None = Query(None),
     period_end: date | None = Query(None),
-):
+) -> DashboardOut:
+    """Сводные KPI и топы по проекту за период (по умолчанию последние ~12 месяцев)."""
     from fastapi import HTTPException
     from sqlalchemy import select
     from app.models.project import Project
