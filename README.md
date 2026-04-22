@@ -22,7 +22,7 @@
 - [Тестирование](#тестирование)
 - [Реализовано vs запланировано (НИР)](#реализовано-vs-запланировано-нир)
 - [Документация и сдача задания 5П](#документация-и-сдача-задания-5п)
-- [Документация НИР и практикум (8П)](#документация-нир-и-практикум-8п)
+- [Практикум и материалы 8П](#практикум-и-материалы-8п)
 
 ---
 
@@ -451,17 +451,17 @@ cd backend
 
 ---
 
-## Документация НИР и практикум (8П)
+## Практикум и материалы 8П
 
 | Материал | Путь |
 |----------|------|
-| Научный отчёт НИР (трек П, задание 8П), генератор Markdown | [docs/nir/Otchet_NIR_8P_Efremova_V_N.md](docs/nir/Otchet_NIR_8P_Efremova_V_N.md), [docs/nir/gen_otchet_md.py](docs/nir/gen_otchet_md.py) |
-| Оформление в Word, Zotero (RIS-дополнения) | [docs/nir/README_oformlenie_Word_8P.md](docs/nir/README_oformlenie_Word_8P.md), [docs/nir/Zotero_dopolneniya_8P.ris](docs/nir/Zotero_dopolneniya_8P.ris) |
 | Отчёт по практике: эксперимент, таблицы, графики (скрипт + PNG) | [docs/experiment_practicum/](docs/experiment_practicum/) |
 | Ключевые тезисы для презентации | [docs/prezentatsiya_klyuchevye_rezultaty.md](docs/prezentatsiya_klyuchevye_rezultaty.md) |
 | EDA по рядам рентабельности | [notebooks/eda_profitability_timeseries.ipynb](notebooks/eda_profitability_timeseries.ipynb) |
 
-Пересборка текста отчёта НИР: `cd docs/nir` и `python gen_otchet_md.py`. Графики практикума: из каталога `backend` с `PYTHONPATH=.` выполнить `python ..\docs\experiment_practicum\generate_report_assets.py`.
+Научный отчёт НИР (трек П) и вспомогательные файлы при необходимости храните **локально** в каталоге `docs/nir/` — в репозиторий не включаются (см. `.gitignore`). HTML-прототип `docs/design-prototype-current.html` также не отслеживается.
+
+Пересборка графиков практикума: из каталога `backend` с `PYTHONPATH=.` выполнить `python ..\docs\experiment_practicum\generate_report_assets.py`.
 
 Тесты прогнозного модуля: `cd backend` и `python -m pytest tests/test_forecast_ml.py -q`.
 
