@@ -1,6 +1,6 @@
 # EcomProfit Guard
 
-Веб-система анализа и прогнозирования рентабельности коммерческих (ecom) проектов: синхронизация с Google Таблицами, дашборд, аналитика, алерты и ML-прогноз (ARIMA, CatBoost, ансамбль).
+Веб-система анализа и прогнозирования рентабельности коммерческих (ecom) проектов: синхронизация с Google Таблицами, дашборд, аналитика, алерты и ML-прогноз (ARIMA/SARIMAX, CatBoost, LightGBM, Prophet, опционально GRU через PyTorch, ансамбль и авто-выбор по WAPE на ретро-валидации). Исследовательский EDA: ноутбук `notebooks/eda_profitability_timeseries.ipynb` (запуск из каталога `backend` с `PYTHONPATH=.` или установленным пакетом `app`).
 
 ---
 
@@ -22,6 +22,7 @@
 - [Тестирование](#тестирование)
 - [Реализовано vs запланировано (НИР)](#реализовано-vs-запланировано-нир)
 - [Документация и сдача задания 5П](#документация-и-сдача-задания-5п)
+- [Документация НИР и практикум (8П)](#документация-нир-и-практикум-8п)
 
 ---
 
@@ -32,7 +33,7 @@
 | **Дашборд** | Выручка, затраты, прибыль, рентабельность, топы проектов, специалистов и подразделений за период |
 | **Аналитика** | Группировки по месяцам, кварталам, годам; разрезы по проектам, клиентам, специалистам, отделам |
 | **Алерты** | Низкая рентабельность (ниже порога), просроченные оплаты по актам; пересчёт вручную |
-| **Прогноз** | Помесячные метрики, признаки (лаги, скользящие средние, тренды и др.), модели ARIMA, CatBoost, ансамбль; горизонт до 12 месяцев |
+| **Прогноз** | Помесячные метрики, признаки (лаги t-1/t-7, скользящие, тренды), ARIMA/SARIMAX, CatBoost, LightGBM, Prophet, GRU (при установленном torch), ансамбль с весами по ретро, режим `auto`; метрики MAE/WAPE и бизнес-ретро в ответе API; горизонт до 12 мес. |
 
 ---
 
@@ -42,7 +43,7 @@
 |------|------------|
 | **Backend** | Python 3.11+, FastAPI, Uvicorn, SQLAlchemy 2 (async), SQLite (aiosqlite) |
 | **Данные** | Google Sheets API, OAuth 2.0 |
-| **ML** | statsmodels (ARIMA), CatBoost, pandas, NumPy |
+| **ML** | statsmodels (ARIMA/SARIMAX), CatBoost, LightGBM, Prophet, pandas, NumPy, scikit-learn; опционально PyTorch (GRU) |
 | **Frontend** | Vue 3, Vite, Pinia, Vue Router, Tailwind CSS, Chart.js (vue-chartjs) |
 | **Аутентификация** | Google OAuth 2.0, JWT |
 
@@ -61,7 +62,7 @@ flowchart LR
   end
   subgraph server["Backend"]
     API[FastAPI /api]
-    ML[forecast_ml: ARIMA, CatBoost]
+    ML[forecast: ARIMA…GRU]
     SYNC[sheets_sync]
   end
   subgraph data["Данные"]
@@ -447,4 +448,20 @@ cd backend
 |----------|------------|
 | [docs/Otchet_pervichnoe_testirovanie_i_sravnenie_s_planom_NIR.md](docs/Otchet_pervichnoe_testirovanie_i_sravnenie_s_planom_NIR.md) | Отчёт: первичное тестирование, метрики, соответствие плану НИР |
 | [docs/testing/](docs/testing/README.md) | Метрики, скриншоты, примеры логов API |
+
+---
+
+## Документация НИР и практикум (8П)
+
+| Материал | Путь |
+|----------|------|
+| Научный отчёт НИР (трек П, задание 8П), генератор Markdown | [docs/nir/Otchet_NIR_8P_Efremova_V_N.md](docs/nir/Otchet_NIR_8P_Efremova_V_N.md), [docs/nir/gen_otchet_md.py](docs/nir/gen_otchet_md.py) |
+| Оформление в Word, Zotero (RIS-дополнения) | [docs/nir/README_oformlenie_Word_8P.md](docs/nir/README_oformlenie_Word_8P.md), [docs/nir/Zotero_dopolneniya_8P.ris](docs/nir/Zotero_dopolneniya_8P.ris) |
+| Отчёт по практике: эксперимент, таблицы, графики (скрипт + PNG) | [docs/experiment_practicum/](docs/experiment_practicum/) |
+| Ключевые тезисы для презентации | [docs/prezentatsiya_klyuchevye_rezultaty.md](docs/prezentatsiya_klyuchevye_rezultaty.md) |
+| EDA по рядам рентабельности | [notebooks/eda_profitability_timeseries.ipynb](notebooks/eda_profitability_timeseries.ipynb) |
+
+Пересборка текста отчёта НИР: `cd docs/nir` и `python gen_otchet_md.py`. Графики практикума: из каталога `backend` с `PYTHONPATH=.` выполнить `python ..\docs\experiment_practicum\generate_report_assets.py`.
+
+Тесты прогнозного модуля: `cd backend` и `python -m pytest tests/test_forecast_ml.py -q`.
 

@@ -13,9 +13,14 @@
           <option v-for="p in projects" :key="p.id" :value="p.id">{{ projectLabel(p) }}</option>
         </select>
         <select v-model="modelType" class="bg-surface border border-border rounded-lg px-4 py-2 text-sm">
-          <option value="ensemble">Ансамбль (ARIMA + CatBoost)</option>
+          <option value="auto">Авто (лучшая по WAPE на ретро)</option>
+          <option value="ensemble">Ансамбль (ARIMA + CatBoost, веса по ретро)</option>
           <option value="arima">ARIMA</option>
+          <option value="sarimax">SARIMAX (m=12)</option>
           <option value="catboost">CatBoost</option>
+          <option value="lightgbm">LightGBM</option>
+          <option value="prophet">Prophet</option>
+          <option value="rnn">GRU (PyTorch)</option>
         </select>
         <input v-model.number="horizon" type="number" min="1" max="12" class="w-20 bg-surface border border-border rounded-lg px-3 py-2 text-sm" />
         <span class="text-muted text-sm">мес.</span>
@@ -32,6 +37,10 @@
     <div v-else-if="running" class="text-muted py-16 text-center">Обучение модели и построение прогноза...</div>
     <template v-else-if="result">
       <p v-if="result.note" class="text-muted text-sm mb-4">{{ result.note }}</p>
+      <div v-if="result.metrics && Object.keys(result.metrics).length" class="bg-surface border border-border rounded-xl p-4 mb-6 text-xs font-mono text-muted overflow-x-auto max-h-64 overflow-y-auto">
+        <div class="text-muted text-sm font-sans mb-2">Метрики валидации / бизнес (JSON)</div>
+        <pre class="whitespace-pre-wrap break-all">{{ metricsJson }}</pre>
+      </div>
       <div class="bg-surface border border-border rounded-xl p-6 mb-6">
         <h3 class="text-sm font-medium text-muted mb-4">Прогноз рентабельности (%) — модель {{ result.model }}</h3>
         <div class="h-72">
@@ -80,7 +89,7 @@ const privacy = usePrivacyStore()
 const appConfig = useAppConfigStore()
 const projects = ref([])
 const projectId = ref(null)
-const modelType = ref('ensemble')
+const modelType = ref('auto')
 const horizon = ref(6)
 const running = ref(false)
 const result = ref(null)
@@ -96,6 +105,15 @@ const chartData = computed(() => {
   }
 })
 const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+
+const metricsJson = computed(() => {
+  if (!result.value?.metrics) return ''
+  try {
+    return JSON.stringify(result.value.metrics, null, 2)
+  } catch {
+    return String(result.value.metrics)
+  }
+})
 
 function projectLabel(p) {
   if (!p) return ''

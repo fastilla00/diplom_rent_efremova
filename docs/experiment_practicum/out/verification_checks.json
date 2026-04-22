@@ -1,0 +1,6 @@
+{
+  "len(df) >= MIN_HISTORY": true,
+  "collect_model_scores non-empty": true,
+  "figures exist": true,
+  "naive mae finite": true
+}

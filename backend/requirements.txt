@@ -18,7 +18,11 @@ numpy==2.2.1
 pandas==2.2.3
 statsmodels==0.14.4
 catboost==1.2.10
+lightgbm==4.5.0
+prophet==1.1.5
+# RNN: torch (CPU): pip install torch --index-url https://download.pytorch.org/whl/cpu
 scikit-learn==1.6.0
+matplotlib>=3.8.0
 
 # Dev / тесты
 pytest==8.3.4

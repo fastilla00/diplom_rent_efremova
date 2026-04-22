@@ -1,0 +1,9 @@
+# Shared constants for forecasting
+PROFITABILITY_DISPLAY_CLIP = (-100.0, 100.0)
+WINSORIZE_LOW, WINSORIZE_HIGH = 0.05, 0.95
+MAX_TRAIN_MONTHS = 36
+MIN_HISTORY_FOR_FULL = 12
+# One-step walk-forward on the last N rows of the supervised frame
+BACKTEST_HOLDOUT_MONTHS = 6
+MIN_SARIMAX_MONTHS = 24
+MIN_PROPHET_MONTHS = 24

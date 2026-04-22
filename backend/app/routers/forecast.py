@@ -1,5 +1,6 @@
 # EcomProfit Guard — forecast router
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
@@ -23,13 +24,26 @@ async def create_forecast(
     res = await db.execute(select(Project).where(Project.id == project_id, Project.user_id == user.id))
     if not res.scalar_one_or_none():
         raise HTTPException(404, "Project not found")
-    if body.model_type not in ("arima", "catboost", "ensemble"):
-        raise HTTPException(400, "model_type must be arima, catboost or ensemble")
+    allowed = (
+        "arima",
+        "sarimax",
+        "catboost",
+        "lightgbm",
+        "prophet",
+        "rnn",
+        "ensemble",
+        "auto",
+    )
+    if body.model_type not in allowed:
+        raise HTTPException(
+            400,
+            "model_type must be one of: " + ", ".join(allowed),
+        )
     result = await run_forecast(db, project_id, body.horizon_months, body.model_type)
     preds = [PredictionPoint(**p) for p in result.get("predictions", [])]
     return ForecastResponse(
         model=result.get("model", "naive"),
         predictions=preds,
-        metrics=result.get("metrics", {}),
+        metrics=jsonable_encoder(result.get("metrics", {})),
         note=result.get("note"),
     )

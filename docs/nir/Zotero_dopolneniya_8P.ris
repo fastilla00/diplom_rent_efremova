@@ -1,0 +1,54 @@
+TY  - BOOK
+TI  - Forecasting: Principles and Practice
+AU  - Hyndman, Rob J.
+AU  - Athanasopoulos, George
+PY  - 2021
+PB  - OTexts
+CY  - Melbourne, Australia
+UR  - https://otexts.com/fpp3/
+ER  - 
+
+TY  - JOUR
+TI  - Forecasting at scale
+AU  - Taylor, Sean J.
+AU  - Letham, Benjamin
+JO  - The American Statistician
+VL  - 72
+IS  - 1
+SP  - 37
+EP  - 45
+PY  - 2018
+DO  - 10.1080/00031305.2018.1548099
+ER  - 
+
+TY  - JOUR
+TI  - The M5 accuracy competition: Results, findings, and conclusions
+AU  - Makridakis, Nikos
+AU  - Spiliotis, Evangelos
+AU  - Assimakopoulos, Vassilios
+JO  - International Journal of Forecasting
+VL  - 38
+IS  - 4
+SP  - 1346
+EP  - 1364
+PY  - 2022
+DO  - 10.1016/j.ijforecast.2021.12.011
+ER  - 
+
+TY  - JOUR
+TI  - Financial time series forecasting with deep learning: A systematic literature review: 2005-2019
+AU  - Sezer, Omer Berat
+AU  - Gudelek, Mehmet Ugur
+AU  - Ozbayoglu, Ahmet Murat
+JO  - Applied Soft Computing
+VL  - 90
+SP  - 106181
+PY  - 2020
+DO  - 10.1016/j.asoc.2020.106181
+ER  - 
+
+TY  - ELEC
+TI  - Vue.js: The Progressive JavaScript Framework
+UR  - https://vuejs.org/
+PY  - 2026
+ER  - 
